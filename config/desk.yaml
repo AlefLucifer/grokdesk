@@ -1,0 +1,45 @@
+# GROK DESK — declarative org chart.
+# This mirrors what grokdesk/runtime.py:build() wires up. Edit here to reason
+# about the desk; the runtime is the source of truth for a live run.
+
+head:
+  name: GROK CORE          # agent nineteen. never trades.
+  reviews_every_h: 1       # reads every desk once an hour
+  fires_below_score: 0.40  # bottom of the roster gets rewritten by AUDIT
+  cooldown_h: 6            # at most one firing per window
+
+desks:
+  radar:                   # desk 1 — see everything, buy nothing
+    agents: [SCOUT, FEED, SIGNAL]
+    poll_seconds: { SCOUT: 3, FEED: 8, SIGNAL: 5 }
+
+  research:                # desk 2 — four checks, pass all or die here
+    agents: [MEMORY, MEMORY-2]
+    checks: [narrative, deployer, clusters, liquidity]
+    scoring_matrix:        # AUDIT rewrites these from realised P&L
+      w_narrative: 0.30
+      w_deployer: 0.30
+      w_clusters: 0.20
+      w_liquidity: 0.20
+      min_narrative: 0.55
+      max_cluster_overlap: 0.40
+      pass_threshold: 0.62
+
+  execution:               # desk 3 — only sees what cleared the filter
+    agents: [EXEC, SNIPER, ROUTER]
+    traders: [AGENT 01, AGENT 02, AGENT 03, AGENT 04, AGENT 05, AGENT 06, AGENT 07]
+    exit_tranches: 4
+
+  risk:                    # desk 4 — outranks everyone, including the head
+    agents: [RISK]
+    max_position_fraction: 0.15
+    max_open_positions: 3
+    max_entries_per_hour: 6
+
+  audit:                   # desk 5 — grades trades, rewrites research + fired agents
+    agents: [HEDGE, AUDIT-2]
+
+  treasury:                # desk 6 — banks profit, freezes on real drawdown
+    agents: [VAULT]
+    sweep_every_h: 6
+    freeze_below_start_fraction: 0.60

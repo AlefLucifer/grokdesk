@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "grokdesk"
+version = "0.1.0"
+description = "An autonomous pump.fun trading desk built from small agents, with a head of desk that hires and fires."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+keywords = ["solana", "pump.fun", "agents", "trading", "autonomous", "grok"]
+dependencies = []
+
+[project.optional-dependencies]
+live = ["httpx>=0.27"]      # only needed if you wire a real LLM endpoint
+
+[project.scripts]
+grokdesk = "grokdesk.__main__:main"
+
+[tool.setuptools.packages.find]
+include = ["grokdesk*"]

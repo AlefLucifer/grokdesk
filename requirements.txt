@@ -1,0 +1,3 @@
+# GROK DESK runs on the Python standard library. Nothing to install for paper
+# mode. Optional, only if you wire a real Grok/OpenAI-compatible LLM endpoint:
+# httpx>=0.27
