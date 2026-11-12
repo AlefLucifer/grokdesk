@@ -127,37 +127,3 @@ the outcome.
 ## License
 
 MIT
-
-## Live market automatic paper experiment
-
-The Vercel dashboard in `public/` runs a simple **automatic experimental** paper
-strategy using read-only Solana pairs from DexScreener via `api/market.js`. It
-is not the original Python desk running on live data: the original simulator
-uses synthetic attributes such as `funder`, `quality` and randomly predetermined
-outcomes, which are not available from this provider. The live experiment does
-not claim to evaluate the original agent research, firing or audit logic.
-
-The experiment starts only on pressing Start and runs only while the page is
-open (browser timers may be throttled). It starts stopped on reload. Pause
-stops entries AND exits, and reset deletes the experiment. Browser local
-storage is the only persistence; it can be lost and does not synchronize.
-Do not run the experiment in multiple tabs at once.
-
-On each successful poll, the strategy closes quoted positions on a 10% price
-drop, 15% rise, or after one hour, then buys eligible quoted pairs. Entry
-requires reported liquidity >= $10k, 24h volume >= $10k, at least 20 trades
-in 5m, and a 5m price change between 1% and 15%. It opens at most three
-positions, at most six per rolling hour, using 5% of available virtual cash
-per trade, and waits an hour after closing before re-entering the same token.
-Only quoted positions can close. Win rate is net-positive closed trades divided
-by all closed trades, including flat trades. Counts are cumulative while the
-visible trade history is limited to 200 events. Initial balance is 10,000
-virtual USD. It charges a hypothetical 0.3% fee each way, but does not model
-slippage, liquidity, token taxes, transaction failures or gas. Reported data
-can be stale, deceptive, incomplete, manipulated, or unavailable; stops are
-not guaranteed execution prices. No wallet, keys, deposits or real transactions
-are supported. Results are not evidence of live trading profitability.
-
-Deploy to Vercel with the Other framework preset (no build command or output
-directory override). The original standalone animated mockup remains at
-`assets/terminal.html`. Run unit tests with `node --test tests/*.test.js`.
