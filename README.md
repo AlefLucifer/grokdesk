@@ -127,3 +127,24 @@ the outcome.
 ## License
 
 MIT
+
+## Live market paper dashboard
+
+The separate Vercel dashboard in `public/` displays read-only Solana pair data
+from DexScreener via `api/market.js`. It offers manual simulated trades with
+an initial **10,000 virtual USD**, not SOL or real money. It charges a simulated
+0.3% fee on each side, but does not model liquidity, slippage, token taxes or
+network fees. Pair prices may be delayed. If quotes fail or become stale,
+trading is disabled and positions without a current quote are not valued.
+The balance and history are stored in the browser's local storage, can be lost
+when browser data is cleared, and do not sync between devices. Quotes refresh
+while the page is open; there is no automatic or background trading. The search
+is not an exhaustive list of Solana tokens or pump.fun mints. No keys, wallets,
+real deposits or on-chain transactions are supported.
+
+Deploy the repository to Vercel with the **Other** framework preset (no build
+command or output directory override): `public/` contains the static page and
+`api/market.js` is its serverless read-only proxy. The original standalone
+animated mockup remains at `assets/terminal.html`.
+
+Run the unit tests with `node --test tests/*.test.js` (Node 18 or newer).
