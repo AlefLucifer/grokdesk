@@ -241,9 +241,54 @@ def dispatch(method: str, path: str, body: bytes | None = None) -> tuple[int, di
         return 404, {"error": "unknown route", "path": u.path,
                      "routes": ["/api/health", "/api/symbols", "/api/signal",
                                 "/api/scan", "/api/vision", "/api/analyse"]}
+    except ValueError as exc:  # bad input is the caller's problem, not a crash
+        return 400, {"error": str(exc), "type": "ValueError"}
     except Exception as exc:
         return 500, {"error": str(exc), "type": type(exc).__name__,
                      "trace": traceback.format_exc(limit=3)}
+
+
+# ---------------------------------------------------------------------------
+# Vercel entrypoint
+#
+# The Flask preset on Vercel looks for a Flask instance named `app` at a known
+# entrypoint and serves `public/**` from the CDN, which is exactly the shape we
+# want. Importing Flask is optional: the CLI, the Streamlit desk and
+# `scripts/vercel_dev.py` never touch it.
+# ---------------------------------------------------------------------------
+
+try:  # pragma: no cover - depends on the deployment target
+    from flask import Flask, Response, request
+except ImportError:  # local runs without the extra dependency
+    Flask = None  # type: ignore[assignment]
+
+if Flask is not None:  # pragma: no cover - exercised on Vercel
+    app = Flask(__name__)
+
+    def _cors(response: Response) -> Response:
+        response.headers["Access-Control-Allow-Origin"] = "*"
+        response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
+        response.headers["Access-Control-Allow-Headers"] = "Content-Type"
+        return response
+
+    def _reply(status: int, payload: dict) -> Response:
+        body = json.dumps(payload, ensure_ascii=False, default=str)
+        return _cors(Response(body, status=status, mimetype="application/json"))
+
+    @app.route("/api", methods=["GET", "POST", "OPTIONS", "HEAD"])
+    @app.route("/api/<path:rest>", methods=["GET", "POST", "OPTIONS", "HEAD"])
+    def _api(rest: str = ""):
+        if request.method == "OPTIONS":
+            return _cors(Response(status=204))
+        path = f"/api/{rest}" if rest else "/api"
+        if request.query_string:
+            path += "?" + request.query_string.decode("utf-8", "replace")
+        status, payload = dispatch(request.method, path, request.get_data() or None)
+        return _reply(status, payload)
+
+    @app.route("/", defaults={"rest": ""})
+    def _health(rest: str):  # a bare GET / is the function's own health check
+        return _reply(*dispatch("GET", "/api/health"))
 
 
 class handler(BaseHTTPRequestHandler):

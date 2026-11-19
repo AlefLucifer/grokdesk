@@ -205,11 +205,17 @@ Streamlit سرور دائمی می‌خواهد و روی Vercel اجرا نمی
 
 ```
 public/index.html · style.css · app.js   →  داشبورد RTL (چارت canvas، شواهد، فلو، سنتیمنت، کارت)
-api/index.py                             →  یک فانکشن پایتون: dispatch(method, path, body)
+api/index.py                             →  یک فانکشن پایتون: dispatch(method, path, body) + app فلاسک
 grokscalp/**                             →  همان موتور، بدون تغییر و فقط با کتابخانه استاندارد
-vercel.json                              →  پوشهٔ خروجی public و rewrite مسیر /api/*
+vercel.json                              →  تنظیم فانکشن و هدرها (کار ریوت را پرست فلاسک می‌کند)
 scripts/vercel_dev.py                    →  اجرای محلیِ دقیقاً همان چیزی که دیپلوی می‌شود
 ```
+
+Vercel برای اپ‌های پایتونی به یک «entrypoint» نیاز دارد، بنابراین `api/index.py` علاوه بر
+`dispatch()` و `handler` استاندارد، یک `app = Flask(__name__)` هم می‌سازد: پرست فلاسک آن را
+به یک فانکشن تبدیل می‌کند، مسیرهای `/api/*` را به همان `dispatch` می‌دهد و پوشهٔ `public/**`
+را از CDN سرو می‌کند. `flask` تنها وابستگی دیپلوی است و در `requirements.txt` علامت خورده؛
+مسیرهای CLI و Streamlit هیچ‌وقت آن را ایمپورت نمی‌کنند.
 
 ### API
 
