@@ -27,7 +27,7 @@ export function ProductCard({ product }: { product: Product }) {
   </article>;
 }
 
-export function ShopCatalog({ initialCategory, initialQuery, initialFavorites }: { initialCategory: CategoryId | ''; initialQuery: string; initialFavorites: boolean }) {
+export function ShopCatalog({ initialCategory, initialQuery = '', initialFavorites = false, lockCategory = false }: { initialCategory: CategoryId | ''; initialQuery?: string; initialFavorites?: boolean; lockCategory?: boolean }) {
   const { products, favorites, ready } = useShop();
   const [category, setCategory] = useState(initialCategory);
   const [query, setQuery] = useState(initialQuery);
@@ -42,16 +42,16 @@ export function ShopCatalog({ initialCategory, initialQuery, initialFavorites }:
       <label className="catalog-search"><Search size={19} aria-hidden="true" /><input type="search" aria-label="جست‌وجو در محصولات" placeholder="جست‌وجو در محصولات…" value={query} onChange={(event) => setQuery(event.target.value)} maxLength={100} /></label>
       <label className="catalog-sort"><SlidersHorizontal size={18} aria-hidden="true" /><span className="sr-only">مرتب‌سازی محصولات</span><select value={sort} onChange={(event) => setSort(event.target.value)}><option value="default">ترتیب فروشگاه</option><option value="low">ارزان‌ترین</option><option value="high">گران‌ترین</option><option value="new">تازه‌ترین</option></select></label>
     </div>
-    <div className="filter-row" aria-label="فیلتر محصولات">
+    {!lockCategory && <div className="filter-row" aria-label="فیلتر محصولات">
       <button type="button" className="chip" aria-pressed={!category && !showFavorites} onClick={() => { setCategory(''); setShowFavorites(false); }}>همه محصولات</button>
       {categories.map((item) => <button type="button" key={item.id} className="chip" aria-pressed={item.id === category} onClick={() => setCategory(category === item.id ? '' : item.id)}>{item.name}</button>)}
       <button type="button" className="chip" aria-pressed={showFavorites} onClick={() => setShowFavorites(!showFavorites)}><Heart size={15} /> علاقه‌مندی‌ها</button>
-    </div>
+    </div>}
     <p className="result-count" aria-live="polite">{showFavorites && !ready ? 'در حال خواندن علاقه‌مندی‌ها…' : `${money(filtered.length)} محصول`}</p>
     {filtered.length ? <div className="product-grid">{filtered.map((product) => <ProductCard key={product.slug} product={product} />)}</div> : (!showFavorites || ready) && <div className="empty-state result-empty">
       <span className="empty-icon">{showFavorites ? <Heart size={32} strokeWidth={1.5} /> : <Search size={32} strokeWidth={1.5} />}</span>
       <h2>{showFavorites ? 'در این فهرست علاقه‌مندی‌ای نیست' : 'محصولی پیدا نشد'}</h2><p>جست‌وجو یا فیلتر را تغییر بده تا انتخاب‌های دیگر را ببینی.</p>
-      <button type="button" className="button outline compact" onClick={() => { setCategory(''); setQuery(''); setShowFavorites(false); }}>نمایش همهٔ محصولات <ArrowLeft size={16} /></button>
+      <button type="button" className="button outline compact" onClick={() => { setCategory(lockCategory ? initialCategory : ''); setQuery(''); setShowFavorites(false); }}>{lockCategory ? 'حذف عبارت جست‌وجو' : 'نمایش همهٔ محصولات'} <ArrowLeft size={16} /></button>
     </div>}
   </>;
 }

@@ -3,6 +3,8 @@ import type { NextConfig } from 'next';
 const config: NextConfig = {
   poweredByHeader: false,
   devIndicators: false,
+  // Canonicals and the Google verification tag must be in the document head.
+  htmlLimitedBots: /.*/,
   outputFileTracingExcludes: { '/*': ['./.data/**', './.env*'] },
   allowedDevOrigins: ['*.e2b.app'],
   serverExternalPackages: ['postgres'],
@@ -17,7 +19,7 @@ const config: NextConfig = {
         ],
       },
       {
-        source: '/admin/:path*',
+        source: '/:internal(admin|checkout)/:path*',
         headers: [
           { key: 'X-Robots-Tag', value: 'noindex, nofollow' },
           { key: 'Cache-Control', value: 'private, no-store' },

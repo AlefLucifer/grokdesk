@@ -16,7 +16,7 @@ export function ProductDetail({ slug }: { slug: string }) {
   </div>;
   const related = products.filter((item) => item.slug !== slug).sort((a, b) => Number(b.category === product.category) - Number(a.category === product.category)).slice(0, 4);
   return <>
-    <div className="breadcrumbs"><Link href="/">خانه</Link><ChevronLeft size={15} /><Link href="/shop">محصولات</Link><ChevronLeft size={15} /><Link href={`/shop?category=${product.category}`}>{categoryName(product.category)}</Link></div>
+    <div className="breadcrumbs"><Link href="/">خانه</Link><ChevronLeft size={15} /><Link href="/shop">محصولات</Link><ChevronLeft size={15} /><Link href={`/category/${product.category}`}>{categoryName(product.category)}</Link></div>
     <div className="product-detail">
       <div className="detail-photo"><img src={product.image} alt={product.name} width={680} height={680} fetchPriority="high" />{product.badge && <span className="product-badge">{product.badge}</span>}</div>
       <div className="detail-copy">

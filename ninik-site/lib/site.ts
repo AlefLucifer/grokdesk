@@ -17,9 +17,11 @@ export function browserDemoMode() {
   return process.env.NINIK_BROWSER_DEMO === '1' && !persistentStorage();
 }
 
-// An unset SITE_URL keeps preview and incomplete deployments out of the index.
+// Only the canonical deployment is indexable. Public demo crawling is opt-in.
 export function publicUrl() {
-  if (demoMode() || browserDemoMode() || !process.env.SITE_URL) return null;
+  const environment = process.env.VERCEL_ENV;
+  if (environment && environment !== 'production') return null;
+  if (demoMode() || (browserDemoMode() && process.env.NINIK_INDEX_BROWSER_DEMO !== '1') || !process.env.SITE_URL) return null;
   try {
     const url = new URL(process.env.SITE_URL);
     return url.protocol === 'https:' && !url.username && !url.password && url.pathname === '/' && !url.search && !url.hash ? url.origin : null;

@@ -20,7 +20,7 @@ export function Header() {
   const [search, setSearch] = useState(false);
   const { count, cartOpen, setCartOpen } = useShop();
   return <>
-    <div className="announcement">{demo ? <><FlaskConical size={15} aria-hidden="true" /> نسخهٔ آزمایشی؛ تغییرات فقط در این مرورگر ذخیره می‌شوند.</> : <><Truck size={15} aria-hidden="true" />ارسال رایگان برای سفارش‌های {money(freeShippingAt)} تومان و بیشتر</>}</div>
+    <div className="announcement">{demo ? <><FlaskConical size={15} aria-hidden="true" /> نسخهٔ آزمایشی؛ محصولات و قیمت‌ها نمونه‌اند. سفارش واقعی ثبت نمی‌شود.</> : <><Truck size={15} aria-hidden="true" />ارسال رایگان برای سفارش‌های {money(freeShippingAt)} تومان و بیشتر</>}</div>
     <header className="header">
       <div className="shell header-inner">
         <button className="icon-btn mobile-menu" type="button" aria-label="منو" aria-controls="main-nav" aria-expanded={menu} onClick={() => setMenu(!menu)}><Menu size={23} /></button>
@@ -76,7 +76,7 @@ function SearchDialog({ open, onClose }: { open: boolean; onClose: () => void })
         <img src={product.image} alt="" width={50} height={50} />
         <span>{product.name}</span><small>{money(product.price)} تومان</small><ArrowLeft size={16} aria-hidden="true" />
       </Link>) : <p className="subtle">محصولی پیدا نشد. عبارت دیگری امتحان کنید.</p>}
-    </div> : <div className="search-suggestions"><span>دسته‌بندی‌ها:</span>{categories.map((item) => <Link key={item.id} href={`/shop?category=${item.id}`} onClick={onClose}>{item.name}</Link>)}</div>}
+    </div> : <div className="search-suggestions"><span>دسته‌بندی‌ها:</span>{categories.map((item) => <Link key={item.id} href={`/category/${item.id}`} onClick={onClose}>{item.name}</Link>)}</div>}
   </Dialog>;
 }
 
@@ -110,7 +110,7 @@ export function Footer() {
       <div className="footer-brand"><Brand /><p>برای بازی، یادگیری و لحظه‌های کوچک و قشنگ کودکی. با عشق، برای کوچولوها.</p></div>
       <div><h2>دسترسی سریع</h2><Link href="/shop">همهٔ محصولات</Link><Link href="/#categories">دسته‌بندی‌ها</Link><Link href="/shop?favorites=1">علاقه‌مندی‌ها</Link></div>
       <div><h2>راهنمای فروشگاه</h2><Link href="/guide">راهنمای خرید</Link><Link href="/guide#shipping">هزینه و روش ارسال</Link><Link href="/guide#privacy">حریم خصوصی</Link></div>
-      <div className="footer-note"><ShieldCheck size={22} aria-hidden="true" /><div><strong>مدیریت فروشگاه</strong><Link href="/admin">ورود به پنل مدیریت <ArrowLeft size={14} /></Link></div></div>
+      <div className="footer-note"><ShieldCheck size={22} aria-hidden="true" /><div><strong>مدیریت فروشگاه</strong><Link href="/admin" rel="nofollow">ورود به پنل مدیریت <ArrowLeft size={14} /></Link></div></div>
     </div>
     <div className="shell footer-bottom"><span>تمام حقوق برای نینیک سایت محفوظ است.</span><span lang="en" dir="ltr">NINIK SHOP</span></div>
   </footer>;

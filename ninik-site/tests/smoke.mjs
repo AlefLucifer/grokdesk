@@ -17,7 +17,7 @@ async function launch(t, extra) {
   await new Promise((resolve) => socket.close(resolve));
   const base = `http://127.0.0.1:${port}`;
   const app = spawn(process.execPath, ['node_modules/next/dist/bin/next', 'start', '--hostname', '127.0.0.1', '--port', String(port)], {
-    env: { ...process.env, NEXT_TELEMETRY_DISABLED: '1', VERCEL: '', DATABASE_URL: '', SITE_URL: '', NINIK_DEMO_MODE: '', NINIK_BROWSER_DEMO: '', NINIK_DATA_DIR: '',
+    env: { ...process.env, NEXT_TELEMETRY_DISABLED: '1', VERCEL: '', VERCEL_ENV: '', DATABASE_URL: '', SITE_URL: '', NINIK_DEMO_MODE: '', NINIK_BROWSER_DEMO: '', NINIK_INDEX_BROWSER_DEMO: '', NINIK_DATA_DIR: '',
       NINIK_SESSION_SECRET: '', NINIK_ADMIN_PASSWORD: '', NINIK_ENABLE_ORDERS: '', GOOGLE_SITE_VERIFICATION: '', ...extra },
     stdio: ['ignore', 'pipe', 'pipe'],
   });
@@ -88,14 +88,14 @@ test('public metadata with a canonical URL and safe defaults without storage', {
   const origin = 'https://ninik.example.test';
   const base = await launch(t, { SITE_URL: origin, VERCEL: '1', NINIK_DEMO_MODE: '1', GOOGLE_SITE_VERIFICATION: 'fixture-only' });
   const robots = await (await fetch(base + '/robots.txt')).text();
-  assert.match(robots, /Disallow: \/admin/);
+  assert.match(robots, /Disallow: \/api\//);
   assert.ok(robots.includes(`Sitemap: ${origin}/sitemap.xml`));
   const sitemap = await (await fetch(base + '/sitemap.xml')).text();
   assert.ok(sitemap.includes(`${origin}/product/fluffy-teddy`));
   assert.ok(!sitemap.includes('/checkout') && !sitemap.includes('/admin'));
   const page = await (await fetch(base + '/product/fluffy-teddy')).text();
   assert.ok(page.includes(`rel="canonical" href="${origin}/product/fluffy-teddy"`));
-  assert.match(page, /"priceCurrency":"IRR"/);
+  assert.doesNotMatch(page, /"@type":"Offer"/);
   assert.match(page, /name="google-site-verification" content="fixture-only"/);
   const admin = await (await fetch(base + '/admin')).text();
   assert.doesNotMatch(admin, /ورود آزمایشی/);
@@ -106,9 +106,63 @@ test('public metadata with a canonical URL and safe defaults without storage', {
 
 test('browser demo is public but cannot write to the Vercel server', { timeout: 20_000 }, async (t) => {
   const base = await launch(t, { SITE_URL: 'https://ninik.example.test', VERCEL: '1', NINIK_BROWSER_DEMO: '1' });
-  assert.match(await (await fetch(base)).text(), /تغییرات فقط در این مرورگر ذخیره می‌شوند/);
+  assert.match(await (await fetch(base)).text(), /محصولات و قیمت‌ها نمونه‌اند/);
   assert.match(await (await fetch(base + '/admin')).text(), /ورود آزمایشی/);
   assert.match(await (await fetch(base + '/robots.txt')).text(), /Disallow: \/\s*$/);
+  assert.equal((await fetch(base + '/sitemap.xml')).status, 404);
   assert.equal((await post(base, '/api/admin/login', { demo: true })).status, 503);
   assert.equal((await post(base, '/api/orders', {})).status, 503);
+});
+
+
+test('online demo sitemap advertises only canonical, public pages', { timeout: 30_000 }, async (t) => {
+  const origin = 'https://ninik.example.test';
+  const base = await launch(t, {
+    SITE_URL: origin, VERCEL: '1', VERCEL_ENV: 'production', NINIK_BROWSER_DEMO: '1', NINIK_INDEX_BROWSER_DEMO: '1', GOOGLE_SITE_VERIFICATION: 'fixture-only',
+  });
+  const response = await fetch(base + '/sitemap.xml');
+  assert.equal(response.status, 200);
+  assert.match(response.headers.get('content-type'), /application\/xml/);
+  const xml = await response.text();
+  const locations = Array.from(xml.matchAll(/<loc>([^<]+)<\/loc>/g), ([, url]) => url);
+  assert.equal(new Set(locations).size, 16);
+  assert.equal(locations.filter((url) => url.startsWith(origin + '/category/')).length, 5);
+  assert.equal(locations.filter((url) => url.startsWith(origin + '/product/')).length, 8);
+  assert.ok(locations.includes(origin + '/') && locations.includes(origin + '/shop') && locations.includes(origin + '/guide'));
+  for (const location of locations) {
+    const url = new URL(location);
+    assert.equal(url.origin, origin);
+    assert.equal(url.search, '');
+    assert.equal(url.hash, '');
+    assert.doesNotMatch(url.pathname, /^\/(?:admin|checkout|api)\b/);
+    const page = await fetch(base + new URL(location).pathname, { headers: { 'User-Agent': 'Googlebot' }, redirect: 'error' });
+    assert.equal(page.status, 200, location);
+    const html = await page.text();
+    const head = html.match(/<head>(.*?)<\/head>/s)?.[1] ?? '';
+    const canonical = head.match(/<link rel="canonical" href="([^"]+)"/)?.[1];
+    assert.ok(canonical, location + ' canonical exists in head');
+    assert.equal(new URL(canonical).href, location);
+    assert.match(head, /name="robots" content="index, follow"/);
+    assert.doesNotMatch(html, /"@type":"Offer"/);
+  }
+  const home = await (await fetch(base, { headers: { 'User-Agent': 'Google-Site-Verification/1.0' } })).text();
+  assert.match(home.match(/<head>(.*?)<\/head>/s)?.[1] ?? '', /name="google-site-verification" content="fixture-only"/);
+  assert.match(home, /"@type":"WebSite"/);
+  const category = await (await fetch(base + '/category/toys')).text();
+  assert.match(category, /"@type":"BreadcrumbList"/);
+  assert.ok(category.includes('/product/fluffy-teddy'));
+  const redirect = await fetch(base + '/shop?category=toys', { redirect: 'manual' });
+  assert.equal(redirect.status, 308);
+  assert.equal(redirect.headers.get('location'), '/category/toys');
+  for (const path of ['/admin', '/checkout', '/shop?q=toy', '/product/browser-only-slug']) {
+    const page = await fetch(base + path);
+    assert.match(await page.text(), /name="robots" content="noindex/);
+    if (path === '/admin' || path === '/checkout') assert.match(page.headers.get('x-robots-tag'), /noindex/);
+  }
+});
+
+test('preview never advertises an index even if production flags are present', { timeout: 20_000 }, async (t) => {
+  const base = await launch(t, { SITE_URL: 'https://ninik.example.test', VERCEL: '1', VERCEL_ENV: 'preview', NINIK_BROWSER_DEMO: '1', NINIK_INDEX_BROWSER_DEMO: '1' });
+  assert.match(await (await fetch(base + '/robots.txt')).text(), /Disallow: \/\s*$/);
+  assert.equal((await fetch(base + '/sitemap.xml')).status, 404);
 });

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { permanentRedirect } from 'next/navigation';
 import { ChevronLeft, Sparkles } from 'lucide-react';
 import { ShopCatalog } from '@/components/catalog';
 import { categories } from '@/lib/catalog';
@@ -17,6 +18,7 @@ export default async function ShopPage({ searchParams }: { searchParams: Promise
   const { q, category, favorites } = await searchParams;
   const selected = categories.find((item) => item.id === category);
   const query = typeof q === 'string' ? q.slice(0, 100) : '';
+  if (selected && !query && favorites !== '1') permanentRedirect(`/category/${selected.id}`);
   return <div className="shell inner-page">
     <div className="breadcrumbs"><Link href="/">خانه</Link><ChevronLeft size={15} /><span>محصولات</span></div>
     <div className="page-intro"><p className="eyebrow"><Sparkles size={17} /> کلی چیز برای دل‌های کوچولو</p>

@@ -2,9 +2,10 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ArrowLeft, ChevronLeft, Gift, HeartHandshake, Sparkles, Truck } from 'lucide-react';
 import { FeaturedProducts } from '@/components/catalog';
+import { JsonLd } from '@/components/json-ld';
 import { CategoryArt } from '@/components/category-art';
 import { categories, freeShippingAt, money } from '@/lib/catalog';
-import { publicUrl } from '@/lib/site';
+import { brand, publicUrl } from '@/lib/site';
 
 export function generateMetadata(): Metadata {
   const url = publicUrl();
@@ -12,7 +13,9 @@ export function generateMetadata(): Metadata {
 }
 
 export default function Home() {
+  const origin = publicUrl();
   return <div className="shell home">
+    {origin && <JsonLd value={{ '@context': 'https://schema.org', '@type': 'WebSite', name: brand, alternateName: 'Ninik Site', url: `${origin}/` }} />}
     <section className="hero" aria-labelledby="hero-title">
       <img className="hero-art" src="/images/hero.webp" alt="خرس عروسکی کرم و رنگین‌کمان چوبی روی زمینهٔ صورتی" width={1264} height={848} fetchPriority="high" />
       <div className="hero-decor hero-star" aria-hidden="true"><Sparkles size={34} strokeWidth={1.2} /></div>
@@ -30,7 +33,7 @@ export default function Home() {
     <section className="category-section" id="categories" aria-labelledby="category-title">
       <div className="section-heading centered"><p className="eyebrow"><span /> یه انتخاب برای هر لحظه <span /></p><h2 id="category-title">دسته‌بندی محصولات</h2></div>
       <div className="category-grid">
-        {categories.map(({ id, name, note, color }) => <Link href={`/shop?category=${id}`} className={`category-card ${color}`} key={id}>
+        {categories.map(({ id, name, note, color }) => <Link href={`/category/${id}`} className={`category-card ${color}`} key={id}>
           <CategoryArt category={id} /><strong>{name}</strong><span>{note}</span>
         </Link>)}
       </div>
