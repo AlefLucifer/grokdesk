@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GROK SCALP — موتور سیگنال اسکالپینگ کریپتو</title>
+<meta name="description" content="موتور جامع سیگنال‌دهی اسکالپینگ کریپتو: SMC/ICT، مشتقات، اوردرفلو، سنتیمنت و تحلیل تصویر چارت در یک کارت.">
+<meta name="theme-color" content="#070b12">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8E%AF%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<div class="glow" aria-hidden="true"></div>
+
+<header class="top">
+  <div class="brand">
+    <span class="mark">🎯</span>
+    <div>
+      <h1>GROK SCALP</h1>
+      <p>موتور جامع سیگنال اسکالپینگ — ساختار، اوردرفلو، سنتیمنت و تصویر چارت در یک کارت</p>
+    </div>
+  </div>
+  <div class="badges">
+    <span class="badge" id="badge-source">—</span>
+    <span class="badge" id="badge-version">v0.1</span>
+  </div>
+</header>
+
+<section class="controls" aria-label="تنظیمات تحلیل">
+  <div class="field">
+    <label for="symbol">ارز</label>
+    <div class="row">
+      <input id="symbol" list="symbols" value="BTCUSDT" spellcheck="false" autocomplete="off"
+             aria-label="نماد">
+      <datalist id="symbols"></datalist>
+      <button class="btn primary" id="run">تحلیل و صدور سیگنال</button>
+    </div>
+  </div>
+
+  <div class="field">
+    <label>تایم‌فریم</label>
+    <div class="pills" id="tfs" role="group" aria-label="تایم‌فریم"></div>
+  </div>
+
+  <div class="field">
+    <label>منبع داده</label>
+    <div class="pills">
+      <button class="pill" data-live="1" id="live-on" title="اندپوینت‌های عمومی بایننس، بدون کلید">داده واقعی</button>
+      <button class="pill" data-live="0" id="live-off" title="شبیه‌ساز قطعی، همیشه در دسترس">شبیه‌ساز</button>
+    </div>
+  </div>
+
+  <div class="field">
+    <label>حساب (USDT) / ریسک هر معامله (٪)</label>
+    <div class="row">
+      <input id="equity" type="number" min="100" step="500" value="10000" aria-label="سرمایه">
+      <input id="risk" type="number" min="0.1" max="2" step="0.1" value="1.5" aria-label="ریسک">
+    </div>
+  </div>
+
+  <div class="field">
+    <label for="image">اسکرین‌شات چارت (اختیاری)</label>
+    <div class="row">
+      <input id="image" type="file" accept="image/png,image/jpeg,image/webp">
+      <button class="btn ghost" id="clear-image" title="حذف تصویر">✕</button>
+    </div>
+  </div>
+</section>
+
+<div id="status" class="status" role="status" aria-live="polite"></div>
+
+<section id="summary" class="summary" aria-label="خلاصه سیگنال"></section>
+
+<section class="grid">
+  <div class="panel chart-panel">
+    <div class="panel-head">
+      <h2>چارت و نواحی ساختاری</h2>
+      <span class="hint" id="chart-hint">—</span>
+    </div>
+    <div class="chart-wrap">
+      <canvas id="chart" aria-label="چارت کندلی با نواحی و سطوح معامله" role="img"></canvas>
+    </div>
+    <div class="legend">
+      <span><i class="sw ob-bull"></i> اردربلاک صعودی</span>
+      <span><i class="sw ob-bear"></i> اردربلاک نزولی</span>
+      <span><i class="sw fvg"></i> FVG</span>
+      <span><i class="ln entry"></i> ورود</span>
+      <span><i class="ln sl"></i> استاپ</span>
+      <span><i class="ln tp"></i> اهداف</span>
+    </div>
+  </div>
+
+  <div class="panel why-panel">
+    <div class="panel-head"><h2>چرا این سیگنال؟</h2></div>
+    <div id="why" class="why"></div>
+  </div>
+</section>
+
+<section class="panel tabs-panel">
+  <nav class="tabs" role="tablist">
+    <button role="tab" class="active" data-tab="evidence">شواهد</button>
+    <button role="tab" data-tab="flow">اوردرفلو</button>
+    <button role="tab" data-tab="news">سنتیمنت و ماکرو</button>
+    <button role="tab" data-tab="card">کارت کامل</button>
+    <button role="tab" data-tab="scan">اسکن بازار</button>
+  </nav>
+
+  <div class="tab-body active" id="tab-evidence">
+    <div class="table-wrap"><table id="evidence-table">
+      <thead><tr><th>خانواده</th><th>جهت</th><th>وزن</th><th>قدرت</th><th>توضیح</th></tr></thead>
+      <tbody></tbody>
+    </table></div>
+  </div>
+
+  <div class="tab-body" id="tab-flow"><div id="flow" class="metrics"></div></div>
+
+  <div class="tab-body" id="tab-news">
+    <div id="news" class="metrics"></div>
+    <ul id="headlines" class="headlines"></ul>
+  </div>
+
+  <div class="tab-body" id="tab-card">
+    <div class="card-actions">
+      <button class="btn ghost" id="copy-card">کپی کارت</button>
+      <button class="btn ghost" id="download-json">دانلود JSON</button>
+    </div>
+    <pre id="card-text" class="card-text"></pre>
+  </div>
+
+  <div class="tab-body" id="tab-scan">
+    <div class="card-actions">
+      <button class="btn primary" id="scan">اسکن ۱۲ نماد اصلی</button>
+      <span class="hint">اسکن با شبیه‌ساز اجرا می‌شود تا صدها درخواست به صرافی نرود.</span>
+    </div>
+    <div class="table-wrap"><table id="scan-table">
+      <thead><tr><th>نماد</th><th>اقدام</th><th>رژیم</th><th>قیمت</th><th>احتمال</th><th>لبه</th>
+      <th>ورود</th><th>استاپ</th><th>TP2</th><th>R:R</th></tr></thead>
+      <tbody></tbody>
+    </table></div>
+  </div>
+</section>
+
+<footer>
+  <p><strong>GROK SCALP</strong> — تحلیل الگوریتمی، نه توصیه مالی. هیچ سفارشی به صرافی ارسال نمی‌شود و کلیدی
+  برای معامله لازم نیست. اسکالپ با اهرم می‌تواند سریع‌تر از هر مدلی ضرر بدهد؛ اندازه پوزیشن و ریسک با شماست.</p>
+  <p class="fine">داده واقعی از اندپوینت‌های عمومی بایننس/کوین‌گکو خوانده می‌شود؛ اگر شبکه یا نماد در دسترس نباشد،
+  موتور به شبیه‌ساز برمی‌گردد و روی کارت اعلام می‌کند. نقشه لیکوییدیشن برآوردی است.</p>
+</footer>
+
+<script src="/app.js"></script>
+</body>
+</html>

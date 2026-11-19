@@ -126,12 +126,20 @@ python -m grokscalp --backtest --symbol BTCUSDT --tf 5m    # walk-forward, no lo
 python -m grokscalp --backtest --live --calibrate          # writes config/calibration.json
 ```
 
-The dashboard:
+The dashboard, two ways:
 
 ```bash
+# 1) zero-install web dashboard, exactly what is deployed on Vercel
+python scripts/vercel_dev.py            # http://localhost:8000
+
+# 2) the full Streamlit desk (needs pandas/plotly)
 pip install -r requirements-scalp.txt
 streamlit run grokscalp/ui/streamlit_app.py
 ```
+
+The web version is a static RTL page in `public/` plus one Python function in
+`api/index.py`; the function only imports the standard library, so it runs on
+Vercel's free tier. Same `SignalEngine.analyse` call, same card.
 
 It gives you the signal card, the annotated chart, the evidence table with the
 weight of every atom, the derivatives panel (OI, funding, CVD, book imbalance,
