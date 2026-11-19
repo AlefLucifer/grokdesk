@@ -42,16 +42,16 @@ def cvd_read(candles: Sequence[Candle], bars: int = 20) -> list[dict]:
     strength = clamp(abs(dc) / scale / 2)
     if dp > 0 and dc > 0:
         out.append(_ev("cvd_confirm_long", 1, 0.55, 0.4 + strength * 0.5,
-                       f"CVD +{dc:,.0f} with price +{dp:+.4g} — aggressive buyers are lifting offers"))
+                       f"CVD +{dc:,.0f} with price {dp:+.4g}% — aggressive buyers are lifting offers"))
     elif dp < 0 and dc < 0:
         out.append(_ev("cvd_confirm_short", -1, 0.55, 0.4 + strength * 0.5,
-                       f"CVD {dc:,.0f} with price {dp:+.4g} — market sellers are hitting bids"))
+                       f"CVD {dc:,.0f} with price {dp:+.4g}% — market sellers are hitting bids"))
     elif dp > 0 and dc < 0:
         out.append(_ev("cvd_absorb", -1, 0.6, 0.45 + strength * 0.4,
-                       f"price up {dp:+.4g} while CVD fell {dc:,.0f} — the bid is passive, move is not backed by takers"))
+                       f"price up {dp:+.4g}% while CVD fell {dc:,.0f} — the bid is passive, move is not backed by takers"))
     elif dp < 0 and dc > 0:
         out.append(_ev("cvd_absorb_up", 1, 0.6, 0.45 + strength * 0.4,
-                       f"price down {dp:+.4g} while CVD rose {dc:,.0f} — sellers are being absorbed"))
+                       f"price down {dp:+.4g}% while CVD rose {dc:,.0f} — sellers are being absorbed"))
     div = divergence([c.c for c in candles[-60:]], series[-60:], lookback=50, pivot=2)
     if div["kind"] == "bull":
         out.append(_ev("cvd_div_bull", 1, 0.65, div["strength"],

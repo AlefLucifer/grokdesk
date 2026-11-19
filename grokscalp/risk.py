@@ -184,12 +184,15 @@ def build_plan(action: str, price: float, candles: Sequence[Candle], st: Structu
     notional = qty * entry
     lev_liq = max(1, int(1.0 / max(plan.stop_pct * config.LIQ_BUFFER, 1e-6)))
     lev_cap = max(1, min(lev_liq, config.MAX_LEVERAGE.get(tf, 10)))
-    if notional > equity * lev_cap:
-        notional = equity * lev_cap * 0.9
+    # pick a leverage that keeps margin near the target, never the whole account
+    lev_need = math.ceil(notional / max(equity * config.MARGIN_TARGET, 1e-9))
+    lev = max(1, min(lev_cap, lev_need))
+    headroom = equity * lev * config.MARGIN_TARGET
+    if notional > headroom:
+        notional = headroom
         qty = notional / entry
         risk_amount = qty * dist
         plan.risk_pct = round(risk_amount / equity * 100, 2)
-    lev = max(1, min(lev_cap, math.ceil(notional / equity)))
     margin = notional / lev if lev else notional
     plan.leverage = int(lev)
     plan.qty = qty

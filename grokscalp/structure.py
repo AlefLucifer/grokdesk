@@ -356,8 +356,9 @@ def analyse_structure(candles: Sequence[Candle], atr_v: float, k: int = 2) -> St
     st.sweep = detect_sweep(candles, st.pools, atr_v)
     st.ote = ote_zone(candles, zz)
     st.sr = support_resistance(pivots, atr_v, price)
-    st.range_high = max(c.h for c in candles[-60:])
-    st.range_low = min(c.l for c in candles[-60:])
+    window = candles[-61:-1] or candles[-60:]
+    st.range_high = max(c.h for c in window)
+    st.range_low = min(c.l for c in window)
     span = st.range_high - st.range_low
     st.premium_discount = clamp((price - st.range_low) / span) if span > 0 else 0.5
     return st

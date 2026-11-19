@@ -64,7 +64,7 @@ def test_plan_invariants(engine):
             assert p.rr >= 0.8
             assert 1 <= p.leverage <= config.MAX_LEVERAGE[tf]
             assert 0.1 <= p.risk_pct <= config.MAX_RISK_PCT
-            assert 0 <= p.margin_pct <= 100.5
+            assert 0 < p.margin_pct <= 60, (card.symbol, card.tf, p.margin_pct)
             assert p.stop_pct <= config.MAX_STOP_PCT[tf] + 1e-9
             assert p.risk_amount <= 10_000 * config.MAX_RISK_PCT / 100 + 1e-6
             assert p.invalidation and p.trailing and p.invalidation_en and p.trailing_en

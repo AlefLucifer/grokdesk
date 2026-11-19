@@ -177,6 +177,9 @@ LIQ_BUFFER = 3.0
 DEFAULT_EQUITY = 10_000.0
 DEFAULT_RISK_PCT = 1.5
 MAX_RISK_PCT = 2.0
+#: how much of the account may sit as margin on one scalp. Leverage is chosen
+#: so margin stays near this, never so the whole account is posted.
+MARGIN_TARGET = 0.35
 
 #: signal lifetime in bars
 SIGNAL_TTL_BARS = 6
