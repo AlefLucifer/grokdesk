@@ -1,0 +1,72 @@
+# GROK SCALP — declarative mirror of the routing table.
+# The engine reads grokscalp/config.py; this file is the same numbers written
+# down so a human can reason about the desk before running it.
+
+engine:
+  version: 0.1.0
+  timeframes: [1m, 3m, 5m, 15m, 30m, 1h, 4h]
+  scalp_timeframes: [1m, 3m, 5m, 15m, 30m]
+  htf_chain:                       # higher timeframes read for each scalp tf
+    1m: [5m, 15m, 1h]
+    3m: [15m, 1h, 4h]
+    5m: [15m, 1h, 4h]
+    15m: [1h, 4h]
+    30m: [1h, 4h]
+    1h: [4h]
+
+sessions:                          # UTC killzones, crypto is 24/7 so softer
+  ASIA:   {start: 0,  end: 4,  quality: 0.80}
+  LONDON: {start: 7,  end: 11, quality: 1.00}
+  NY_AM:  {start: 12, end: 16, quality: 1.00}
+  NY_PM:  {start: 16, end: 20, quality: 0.70}
+  OFF:    {quality: 0.55}
+
+families:                          # reliability before the regime multiplier
+  SMC: 1.00        # BOS, CHoCH, OB, FVG, liquidity sweep, OTE, premium/discount
+  MTF: 1.05        # higher-timeframe agreement
+  DERIV: 0.90      # OI, funding, CVD, order book, liquidations, whale prints
+  VSA: 0.80        # volume spread analysis, Wyckoff springs/upthrusts
+  IND: 0.80        # RSI/MACD divergence, EMA ribbon, Bollinger, Ichimoku, VWAP, ADX
+  VP: 0.75         # volume profile POC / VAH / VAL
+  PATTERN: 0.55    # candles, harmonics, chart patterns
+  MACRO: 0.65      # BTC, USDT dominance, DXY
+  SENTIMENT: 0.55  # fear & greed, headlines, scheduled events
+  VISION: 0.85     # chart screenshot
+  SESSION: 0.30    # killzone timing
+
+regime_weights:                    # the dynamic strategy routing
+  TREND_UP:   {SMC: 1.20, MTF: 1.25, DERIV: 1.15, VSA: 0.85, IND: 1.00, VP: 1.00, PATTERN: 0.90, MACRO: 1.00, SENTIMENT: 0.80, VISION: 1.10}
+  TREND_DOWN: {SMC: 1.20, MTF: 1.25, DERIV: 1.15, VSA: 0.85, IND: 1.00, VP: 1.00, PATTERN: 0.90, MACRO: 1.00, SENTIMENT: 0.80, VISION: 1.10}
+  RANGE:      {SMC: 0.95, MTF: 0.75, DERIV: 1.00, VSA: 1.25, IND: 1.15, VP: 1.25, PATTERN: 1.05, MACRO: 0.80, SENTIMENT: 0.70, VISION: 1.00}
+  HIGH_VOL:   {SMC: 0.90, MTF: 1.10, DERIV: 1.20, VSA: 0.80, IND: 0.80, VP: 0.90, PATTERN: 0.65, MACRO: 0.70, SENTIMENT: 0.60, VISION: 0.95}
+  SQUEEZE:    {SMC: 0.85, MTF: 0.90, DERIV: 1.05, VSA: 1.15, IND: 1.20, VP: 1.10, PATTERN: 0.90, MACRO: 0.75, SENTIMENT: 0.60, VISION: 0.90}
+  ILLIQUID:   {SMC: 0.70, MTF: 0.70, DERIV: 0.70, VSA: 1.00, IND: 0.70, VP: 0.90, PATTERN: 0.50, MACRO: 0.60, SENTIMENT: 0.50, VISION: 0.60}
+
+gates:
+  min_edge: 0.16
+  min_conviction: 0.28
+  max_conflict: 0.62
+  min_evidence_atoms: 4
+  event_blackout_minutes: 30
+  funding_extreme_per_8h: 0.0010
+  funding_hot_per_8h: 0.0005
+  max_spread_bps: 18
+
+probability:                       # p = 0.5 + spread * tanh(gain * edge)
+  spread: 0.30
+  gain: 1.25
+  floor: 0.34
+  ceiling: 0.82
+  calibration: config/calibration.json   # written by `--backtest --calibrate`
+
+risk:
+  atr_stop_buffer: 0.35
+  entry_pad_atr: 0.10
+  min_stop_pct: 0.0015
+  max_stop_pct: {1m: 0.012, 3m: 0.018, 5m: 0.022, 15m: 0.030, 30m: 0.038, 1h: 0.055, 4h: 0.090}
+  tp_r: [1.4, 2.6, 4.2]
+  max_leverage: {1m: 20, 3m: 15, 5m: 12, 15m: 8, 30m: 6, 1h: 4, 4h: 3}
+  liquidation_buffer: 3.0          # liquidation must sit 3 stops away
+  default_equity: 10000
+  default_risk_pct: 1.5
+  max_risk_pct: 2.0

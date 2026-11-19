@@ -1,0 +1,7 @@
+# GROK SCALP dashboard only. The engine itself is standard library.
+streamlit>=1.40
+pandas>=2.0
+plotly>=5.20
+pillow>=10.0
+# optional, for a real vision model on chart screenshots: any OpenAI-compatible key
+# export VISION_API_KEY=... VISION_BASE=https://api.openai.com/v1 VISION_MODEL=gpt-4o-mini

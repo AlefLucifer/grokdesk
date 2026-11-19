@@ -7,7 +7,8 @@
 <p align="center">
   An autonomous <b>pump.fun</b> trading desk built out of small agents.<br>
   Six desks, one head of desk, and a firing loop that rewrites whoever underperforms.<br>
-  <i>Paper trading. No wallet, no signing, no network required.</i>
+  <i>Paper trading. No wallet, no signing, no network required.</i><br>
+  Plus <b>GROK SCALP</b>: a standalone crypto scalping &amp; signal engine with a Streamlit desk.
 </p>
 
 ---
@@ -102,9 +103,76 @@ wiring one is deliberately left to you.
 terminal: the agent mesh, the mint stream, the P&L, the vault and the alert
 feed. Open it in a browser.
 
+---
+
+# GROK SCALP
+
+The second product in this repo: an all-in-one **crypto scalping & signal
+engine**. It is not one strategy. It classifies the market regime first, then
+re-weights eleven families of evidence (SMC/ICT, multi-timeframe, derivatives,
+VSA/Wyckoff, indicators, volume profile, patterns, macro, sentiment, chart
+vision, session) and only publishes a card when the confluence clears every
+gate. Most of the time the correct output is **WAIT**, and the card says why.
+
+The engine is standard-library Python. Streamlit, pandas, plotly and Pillow are
+optional, for the dashboard and the offline chart reader.
+
+```bash
+python -m grokscalp --symbol BTCUSDT --tf 5m              # signal card, simulated market
+python -m grokscalp --symbol SOLUSDT --tf 15m --live       # public Binance data, no keys
+python -m grokscalp --symbol ETHUSDT --tf 5m --image chart.png
+python -m grokscalp --scan BTCUSDT ETHUSDT SOLUSDT --tf 5m
+python -m grokscalp --backtest --symbol BTCUSDT --tf 5m    # walk-forward, no lookahead
+python -m grokscalp --backtest --live --calibrate          # writes config/calibration.json
+```
+
+The dashboard:
+
+```bash
+pip install -r requirements-scalp.txt
+streamlit run grokscalp/ui/streamlit_app.py
+```
+
+It gives you the signal card, the annotated chart, the evidence table with the
+weight of every atom, the derivatives panel (OI, funding, CVD, book imbalance,
+liquidation magnets, whale prints), news and macro, a walk-forward backtest tab
+that calibrates the probability, a market scanner and the methodology.
+
+Every number on screen comes from `SignalEngine.analyse`, so the CLI, the UI and
+the JSON output never disagree. Full Persian guide, methodology and limitations:
+[`docs/grok-scalp.md`](docs/grok-scalp.md).
+
+What it refuses to fake:
+
+- **No repaint.** Swings need `k` bars of confirmation, breaks are close-based.
+- **No invented levels.** Stops sit behind the invalidation level plus an ATR
+  buffer; targets are structure, volume profile or liquidation clusters, capped
+  in R so a 5m card is not a swing trade.
+- **No fake win rate.** Probability is the confluence model, then corrected by a
+  walk-forward backtest. On synthetic data the measured hit rate is poor and the
+  engine says so — run `--live --calibrate` before trusting any number.
+- **No public forceOrders.** The liquidation map is estimated from swing
+  liquidity and labelled as such.
+- **No keys, no orders.** Read-only public endpoints. Nothing here signs or sends
+  a trade.
+
 ## Layout
 
 ```
+grokscalp/          the scalping signal engine
+  engine.py         snapshot -> evidence -> gates -> card
+  structure.py      BOS, CHoCH, order blocks, FVG, liquidity, OTE
+  indicators.py     RSI/MACD/ATR/Bollinger/Ichimoku/VWAP/ADX/volume profile
+  patterns.py       candles, harmonics, VSA/Wyckoff, chart patterns
+  derivatives.py    CVD, OI, funding, book imbalance, liquidations, whales
+  regime.py         regime detection + the routing table
+  confluence.py     weighted evidence, edge, conflict, gates, calibration
+  risk.py           entry, stop, targets, R:R, leverage, sizing
+  vision.py         chart screenshot reader (vision API or offline Pillow)
+  backtest.py       walk-forward validation
+  data/             deterministic synthetic market + public Binance adapters
+  render/           Persian/English signal card + Plotly chart
+  ui/               Streamlit desk
 grokdesk/
   bus.py            async pub/sub the desks talk over
   llm.py            grok / openai-compatible wrapper (offline fallback)
@@ -115,14 +183,18 @@ grokdesk/
   market/           bonding curve, paper pump.fun feed, paper broker
   desks/            radar, research, execution, risk, audit, treasury
 config/desk.yaml    the org chart as data
+config/scalp.yaml   the signal engine's routing table as data
+docs/grok-scalp.md  the engine, in Persian, end to end
 assets/             logo, banner, terminal.html
 ```
 
 ## Disclaimer
 
-Paper trading and a simulation. Not financial advice, not a live trading bot,
-and nothing here signs a transaction. Build the chain side yourself and you own
-the outcome.
+Paper trading and a simulation. GROK SCALP is an analysis engine: it reads public
+data and prints probabilistic cards. It is not financial advice, not a live
+trading bot, and nothing here signs a transaction or sends an order. Scalping
+with leverage can lose money faster than any model can warn you — position
+sizing, venue risk and the outcome are yours.
 
 ## License
 

@@ -5,18 +5,21 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "grokdesk"
 version = "0.1.0"
-description = "An autonomous pump.fun trading desk built from small agents, with a head of desk that hires and fires."
+description = "An autonomous pump.fun trading desk of small agents, plus GROK SCALP: a crypto scalping signal engine."
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
-keywords = ["solana", "pump.fun", "agents", "trading", "autonomous", "grok"]
+keywords = ["solana", "pump.fun", "agents", "trading", "autonomous", "grok", "scalping", "smc", "ict", "binance"]
 dependencies = []
 
 [project.optional-dependencies]
 live = ["httpx>=0.27"]      # only needed if you wire a real LLM endpoint
+scalp = ["streamlit>=1.40", "pandas>=2.0", "plotly>=5.20", "pillow>=10.0"]
+dev = ["pytest>=8.0", "streamlit>=1.40", "pandas>=2.0", "plotly>=5.20", "pillow>=10.0"]
 
 [project.scripts]
 grokdesk = "grokdesk.__main__:main"
+grokscalp = "grokscalp.__main__:main"
 
 [tool.setuptools.packages.find]
-include = ["grokdesk*"]
+include = ["grokdesk*", "grokscalp*"]
